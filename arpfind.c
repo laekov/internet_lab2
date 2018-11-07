@@ -2,36 +2,21 @@
 
 int arpGet(struct arpmac *srcmac,char *ifname, char *ipStr)  
 {  
-
-    struct ifreq ifr;
-    struct ifconf ifc;
-    char buf[1024];
-    int success = 0;
-
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (sock == -1) { return -1; }
-
-    ifc.ifc_len = sizeof(buf);
-    ifc.ifc_buf = buf;
-    if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) { return -1; }
-
-    struct ifreq* it = ifc.ifc_req;
-    const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
-
-    for (; it != end; ++it) {
-        strcpy(ifr.ifr_name, it->ifr_name);
-        if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
-            if (! (ifr.ifr_flags & IFF_LOOPBACK)) { 
-                if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-					if (!strcmp(ifr.ifr_name, ifname)) {
-						srcmac->mac = ifr.ifr_hwaddr.sa_data;
-						srcmac->index = if_nametoindex(ifname);
-						return 0;
-					}
-                }
-            }
-        }
-        else { return -1; }
-    }
-	return -1;
+	srcmac->index = if_nametoindex(ifname);
+	FILE* fin = fopen("/proc/net/arp", "r");
+	char* buf = malloc(31);
+	while (!feof(fin)) {
+		fscanf(fin, "%s", buf);
+		if (feof(fin)) {
+			fclose(fin);
+			free(buf);
+			return -1;
+		}
+		if (!strcmp(buf, ipStr)) {
+			fscanf(fin, "%*s%s", buf);
+			sscanf(buf, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", srcmac->mac, srcmac->mac + 1, srcmac->mac + 2, srcmac->mac + 3, srcmac->mac + 4, srcmac->mac + 5); 
+			fclose(fin);
+			return 0;
+		}
+	}
 }  

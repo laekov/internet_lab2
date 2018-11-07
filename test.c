@@ -28,7 +28,6 @@ int main()
         if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
             if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
                 if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-					printf("DONE\n");
                     success = 1;
                     break;
                 }

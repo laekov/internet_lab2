@@ -127,7 +127,6 @@ int main()
 					memcpy(iphead, skbuf + ETHER_HEADER_LEN, sizeof(struct _iphdr));
 					
 					{
-						printf("The ttl is %d\n", ip_recvpkt->ip_ttl);
 					//调用校验函数check_sum，成功返回1
 						c = check_sum((unsigned short*)iphead, IP_HEADER_LEN / 2, iphead->checksum);
 					}
@@ -161,6 +160,7 @@ int main()
 					struct arpmac *srcmac;
 					srcmac = (struct arpmac*)malloc(sizeof(struct arpmac));
 					memset(srcmac,0,sizeof(struct arpmac));
+					srcmac->mac = malloc(6);
 					{
 					//调用arpGet获取下一跳的mac地址		
 						arpGet(srcmac, nexthopinfo->ifname, inet_ntoa(nexthopinfo->ipv4addr));
@@ -174,14 +174,13 @@ int main()
 					//<1>.根据获取到的信息填充以太网数据包头，以太网包头主要需要源mac地址、目的mac地址、以太网类型eth_header->ether_type = htons(ETHERTYPE_IP);
 					//<2>.再填充ip数据包头，对其进行校验处理；
 					//<3>.然后再填充接收到的ip数据包剩余数据部分，然后通过raw socket发送出去
-					    struct ip *packet = (struct ip*)malloc(sizeof(struct ip));
-						//ip_transmit(packet, iphead->checksum, )
+						unsigned short len = ip_recvpkt->ip_len;
+						len = (((len & 0xff)<< 8) | ((len >> 8)& 0xff));
+					    struct ip *packet = fill_ip_packet(iphead, iphead->checksum);
+						ip_transmit(packet, iphead->checksum, nexthopinfo->ifname, srcmac->mac, data, len);
 						//fill_ip_packet(packet, bn)
 					}
 			}
-		
-			
-
 		}
 	}
 

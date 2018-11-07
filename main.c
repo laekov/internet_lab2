@@ -24,10 +24,14 @@ void *thr_fn(void *arg)
   	head = ifni;
 	char *ifname;
 
+	while (1) {};
+
 	// add-24 del-25
 	while(1)
 	{
+		puts("route fetching");
 		st=static_route_get(selfrt);
+		puts("route got");
 		if(st == 1)
 		{
 			if(selfrt->cmdnum == 24)
@@ -44,11 +48,13 @@ void *thr_fn(void *arg)
 
 				{
 					//插入到路由表里
+					insert_route(selfrt->prefix.s_addr, selfrt->prefixlen, selfrt->ifname, selfrt->ifindex, selfrt->nexthop.s_addr);
 				}
 			}
 			else if(selfrt->cmdnum == 25)
 			{
 				//从路由表里删除路由
+				delete_route(selfrt->nexthop, selfrt->prefixlen);
 			}
 		}
 
@@ -86,7 +92,7 @@ int main()
 
 	{
 	//调用添加函数insert_route往路由表里添加直连路由
-		insert_route(inet_addr("192.168.6.0"), 24, "eth1", if_nametoindex("eth1"), inet_addr("192.168.6.4"));
+		insert_route(inet_addr("192.168.6.0"), 24, "eth1", if_nametoindex("eth1"), inet_addr("192.168.3.2"));
 	}
 
 	//创建线程去接收路由信息
@@ -106,7 +112,7 @@ int main()
 			//192.168.1.10是测试服务器的IP，现在测试服务器IP是192.168.1.10到192.168.1.80.
 			//使用不同的测试服务器要进行修改对应的IP。然后再编译。
 			//192.168.6.2是测试时候ping的目的地址。与静态路由相对应。
- 			if(ip_recvpkt->ip_src.s_addr == inet_addr("192.168.1.10") && ip_recvpkt->ip_dst.s_addr == inet_addr("192.168.6.4") )
+ 			if(ip_recvpkt->ip_src.s_addr == inet_addr("192.168.1.1") && ip_recvpkt->ip_dst.s_addr == inet_addr("192.168.6.2") )
 			{
 				//分析打印ip数据包的源和目的ip地址
 			//	analyseIP(ip_recvpkt);

@@ -24,14 +24,10 @@ void *thr_fn(void *arg)
   	head = ifni;
 	char *ifname;
 
-	while (1) {};
-
 	// add-24 del-25
 	while(1)
 	{
-		puts("route fetching");
 		st=static_route_get(selfrt);
-		puts("route got");
 		if(st == 1)
 		{
 			if(selfrt->cmdnum == 24)
@@ -45,6 +41,8 @@ void *thr_fn(void *arg)
 					}
 					ifni++;
 				}
+				printf("prefix is %s/%hhd\n", inet_ntoa(selfrt->prefix), selfrt->prefixlen);
+				printf("nexthop is %s\n", inet_ntoa(selfrt->nexthop));
 
 				{
 					//插入到路由表里
@@ -54,6 +52,8 @@ void *thr_fn(void *arg)
 			else if(selfrt->cmdnum == 25)
 			{
 				//从路由表里删除路由
+				printf("delete prefix is %s/%hhd\n", inet_ntoa(selfrt->prefix), selfrt->prefixlen);
+				printf("delete nexthop is %s\n", inet_ntoa(selfrt->nexthop));
 				delete_route(selfrt->nexthop, selfrt->prefixlen);
 			}
 		}

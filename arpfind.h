@@ -6,6 +6,7 @@
 #include <netinet/in.h>  
 #include <arpa/inet.h>  
 #include <sys/ioctl.h>  
+#include <net/if.h> 
 #include <net/if_arp.h>  
 #include <string.h> 
 

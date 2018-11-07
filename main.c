@@ -85,9 +85,8 @@ int main()
 
 
 	{
-		
 	//调用添加函数insert_route往路由表里添加直连路由
-	
+		insert_route(inet_addr("192.168.6.0"), 24, "eth0", if_nametoindex("eth0"), inet_addr("192.168.6.2"));
 	}
 
 	//创建线程去接收路由信息
@@ -125,10 +124,12 @@ int main()
 					int c=0;
 
 					iphead=(struct _iphdr *)malloc(sizeof(struct _iphdr));
+					memcpy(iphead, skbuf + ETHER_HEADER_LEN, sizeof(struct _iphdr));
 					
 					{
-
+						printf("The ttl is %d\n", ip_recvpkt->ip_ttl);
 					//调用校验函数check_sum，成功返回1
+						c = check_sum((unsigned short*)iphead, IP_HEADER_LEN / 2, iphead->checksum);
 					}
 					if(c ==1)
 					{
@@ -140,8 +141,9 @@ int main()
 					}
 
 					{
-						
 					//调用计算校验和函数count_check_sum，返回新的校验和 
+						-- iphead->ttl;
+						iphead->checksum = count_check_sum(iphead);
 					} 
 
 
@@ -150,8 +152,8 @@ int main()
 					nexthopinfo = (struct nextaddr *)malloc(sizeof(struct nextaddr));
 					memset(nexthopinfo,0,sizeof(struct nextaddr));
 					{
-						
 					//调用查找路由函数lookup_route，获取下一跳ip地址和出接口
+						lookup_route(ip_recvpkt->ip_dst, nexthopinfo);
 					}
 
 					
@@ -160,8 +162,8 @@ int main()
 					srcmac = (struct arpmac*)malloc(sizeof(struct arpmac));
 					memset(srcmac,0,sizeof(struct arpmac));
 					{
-						
 					//调用arpGet获取下一跳的mac地址		
+						arpGet(srcmac, nexthopinfo->ifname, inet_ntoa(nexthopinfo->ipv4addr));
 					}
 
 					//send ether icmp
@@ -172,6 +174,9 @@ int main()
 					//<1>.根据获取到的信息填充以太网数据包头，以太网包头主要需要源mac地址、目的mac地址、以太网类型eth_header->ether_type = htons(ETHERTYPE_IP);
 					//<2>.再填充ip数据包头，对其进行校验处理；
 					//<3>.然后再填充接收到的ip数据包剩余数据部分，然后通过raw socket发送出去
+					    struct ip *packet = (struct ip*)malloc(sizeof(struct ip));
+						//ip_transmit(packet, iphead->checksum, )
+						//fill_ip_packet(packet, bn)
 					}
 			}
 		

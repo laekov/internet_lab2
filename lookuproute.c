@@ -23,7 +23,7 @@ unsigned int get_mask(int l) {
 int lookup_route(struct in_addr dstaddr,struct nextaddr *nexthopinfo)
 {
 	nexthopinfo->prefixl = 0;
-	for (struct route* r = route_table; r; r = r->next) {
+	for (struct route* r = route_table->next; r; r = r->next) {
 		int mask = get_mask(r->prefixlen);
 		if ((dstaddr.s_addr & mask) == (r->ip4prefix.s_addr & mask)) {
 			if (r->prefixlen > nexthopinfo->prefixl) {

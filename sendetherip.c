@@ -1,3 +1,4 @@
+#include <errno.h>
 #include "sendetherip.h"
 
 void get_if_mac(char* src_mac, char* if_name) {
@@ -61,6 +62,30 @@ void ip_transmit(struct ip *ip_packet,unsigned short checksum,char *name, unsign
 		printf("sendfd() error\n");
 		return -1;
 	}	
-	send(sendfd, skbuf, sizeof(skbuf), 0);
+	struct sockaddr_ll sadr;
+	sadr.sll_ifindex = if_nametoindex(name);
+	sadr.sll_halen = ETH_ALEN;
+	memcpy(sadr.sll_addr, nextmac, ETH_ALEN);
+	unsigned long retv = sendto(sendfd, skbuf, sizeof(skbuf), 0,
+			&sadr, sizeof(struct sockaddr_ll));
+	if (!~retv) {
+		printf("%d\n", errno);
+		switch (errno) {
+			case EWOULDBLOCK: puts("EWOULDBLOCK"); break;
+			case EBADF: puts("EBADF"); break;
+			case ECONNRESET: puts("ECONNRESET"); break;
+			case EDESTADDRREQ: puts("EDESTADDRREQ"); break;
+			case EFAULT: puts("EFAULT"); break;
+			case EINTR: puts("EINTR"); break;
+			case EINVAL: puts("EINVAL"); break;
+			case EISCONN: puts("EISCONN"); break;
+			case EMSGSIZE: puts("EMSGSIZE"); break;
+			case ENOBUFS: puts("ENOBUFS"); break;
+			case ENOMEM: puts("ENOMEM"); break;
+			case ENOTCONN: puts("ENOTCONN"); break;
+			case ENOTSOCK: puts("ENOTSOCK"); break;
+			case EOPNOTSUPP: puts("EOPNOTSUPP"); break;
+			case EPIPE: puts("EPIPE"); break;
+		}
+	}
 }
-

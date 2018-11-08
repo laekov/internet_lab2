@@ -41,12 +41,14 @@ void *thr_fn(void *arg)
 					}
 					ifni++;
 				}
+				printf("interface is %s\n", ifni->if_name);
+				printf("interface idx is %d\n", ifni->if_index);
 				printf("prefix is %s/%hhd\n", inet_ntoa(selfrt->prefix), selfrt->prefixlen);
 				printf("nexthop is %s\n", inet_ntoa(selfrt->nexthop));
 
 				{
 					//插入到路由表里
-					insert_route(selfrt->prefix.s_addr, selfrt->prefixlen, selfrt->ifname, selfrt->ifindex, selfrt->nexthop.s_addr);
+					insert_route(selfrt->prefix.s_addr, selfrt->prefixlen, ifni->if_name, ifni->if_index, selfrt->nexthop.s_addr);
 				}
 			}
 			else if(selfrt->cmdnum == 25)
@@ -92,7 +94,7 @@ int main()
 
 	{
 	//调用添加函数insert_route往路由表里添加直连路由
-		insert_route(inet_addr("192.168.6.0"), 24, "eth1", if_nametoindex("eth1"), inet_addr("192.168.3.2"));
+		//insert_route(inet_addr("192.168.6.0"), 24, "eth1", if_nametoindex("eth1"), inet_addr("192.168.3.2"));
 	}
 
 	//创建线程去接收路由信息
